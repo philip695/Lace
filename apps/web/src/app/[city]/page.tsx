@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { RunTimeBadge } from '@/components/run-time-badge'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { WEEKDAYS, WEEKDAY_LABELS, RUN_TYPE_LABELS, todayWeekday } from '@lace/config/constants'
 import type { RunWithClubAndLocation } from '@lace/db'
 
@@ -21,7 +22,6 @@ export async function generateMetadata({ params }: WeekViewProps): Promise<Metad
 export default async function WeekView({ params }: WeekViewProps) {
   const supabase = createClient()
 
-  // Look up city by slug
   const { data: city } = await supabase
     .from('city')
     .select('id, name, slug')
@@ -30,7 +30,6 @@ export default async function WeekView({ params }: WeekViewProps) {
 
   if (!city) notFound()
 
-  // Fetch all active clubs in this city
   const { data: clubs } = await supabase
     .from('club')
     .select('id')
@@ -39,7 +38,6 @@ export default async function WeekView({ params }: WeekViewProps) {
 
   const clubIds = (clubs ?? []).map((c) => c.id)
 
-  // Fetch all active runs for those clubs with club + location info
   const { data: runs } = clubIds.length
     ? await supabase
         .from('run')
@@ -54,7 +52,6 @@ export default async function WeekView({ params }: WeekViewProps) {
   const typedRuns = (runs ?? []) as RunWithClubAndLocation[]
   const today = todayWeekday()
 
-  // Group runs by weekday
   const runsByDay = WEEKDAYS.reduce<Record<string, RunWithClubAndLocation[]>>((acc, day) => {
     acc[day] = typedRuns.filter((r) => r.weekday === day)
     return acc
@@ -63,7 +60,7 @@ export default async function WeekView({ params }: WeekViewProps) {
   const hasAnyRuns = typedRuns.length > 0
 
   return (
-    <div className="px-4 py-5 space-y-6 max-w-lg mx-auto">
+    <div className="px-4 py-5 space-y-7 max-w-lg mx-auto">
       {!hasAnyRuns && (
         <p className="text-ink2 text-sm text-center pt-10">
           No runs yet in {city.name}. Check back soon.
@@ -73,41 +70,39 @@ export default async function WeekView({ params }: WeekViewProps) {
       {WEEKDAYS.map((day) => {
         const dayRuns = runsByDay[day]
         if (!dayRuns.length) return null
+        const isToday = day === today
 
         return (
           <section key={day}>
+            {/* Day header */}
             <div className="flex items-center gap-2 mb-3">
-              <h2
-                className={`text-sm font-semibold ${
-                  day === today ? 'text-blue' : 'text-ink2'
-                }`}
-              >
+              <h2 className={`text-sm font-semibold ${isToday ? 'text-blue' : 'text-ink2'}`}>
                 {WEEKDAY_LABELS[day]}
               </h2>
-              {day === today && (
+              {isToday && (
                 <span className="text-2xs font-semibold bg-blue-s text-blue px-2 py-0.5 rounded-full">
                   Today
                 </span>
               )}
             </div>
 
+            {/* Run cards */}
             <div className="space-y-2">
               {dayRuns.map((run) => (
                 <Link
                   key={run.id}
                   href={`/${params.city}/clubs/${run.club.slug}/runs/${run.id}`}
-                  className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 gap-3"
+                  className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 gap-3 active:opacity-70 transition-opacity"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink truncate">
+                    <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
                       {run.club.shortname ?? run.club.name}
-                      {run.club.verified && (
-                        <span className="ml-1.5 text-blue" title="Verified">✓</span>
-                      )}
+                      {run.club.verified && <VerifiedBadge />}
                     </p>
                     <p className="text-xs text-ink2 truncate mt-0.5">
-                      {RUN_TYPE_LABELS[run.type]}
-                      {run.location ? ` · ${run.location.name}` : ''}
+                      {run.meetpoint_name
+                        ? `${run.meetpoint_name} · ${RUN_TYPE_LABELS[run.type]}`
+                        : RUN_TYPE_LABELS[run.type]}
                     </p>
                   </div>
                   <RunTimeBadge time={run.time} />

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { RunTimeBadge } from '@/components/run-time-badge'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { WEEKDAY_LABELS, RUN_TYPE_LABELS, mapsUrl, formatTime } from '@lace/config/constants'
 
 type RunDetailProps = {
@@ -53,7 +54,7 @@ export default async function RunDetail({ params }: RunDetailProps) {
       {/* Back link */}
       <Link
         href={`/${params.city}/clubs/${params.slug}`}
-        className="text-sm text-ink2 flex items-center gap-1 mb-5"
+        className="text-sm text-ink2 flex items-center gap-1 mb-6"
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
           <path d="M10 12L6 8l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -62,17 +63,19 @@ export default async function RunDetail({ params }: RunDetailProps) {
       </Link>
 
       {/* Time & day */}
-      <div className="flex items-center gap-3 mb-2">
+      <div className="flex items-center gap-2 mb-2">
         <RunTimeBadge time={run.time} />
-        <span className="text-sm text-ink2">{WEEKDAY_LABELS[run.weekday as keyof typeof WEEKDAY_LABELS]}</span>
+        <span className="text-sm text-ink2">
+          {WEEKDAY_LABELS[run.weekday as keyof typeof WEEKDAY_LABELS]}
+        </span>
       </div>
 
       <h1 className="font-display text-2xl text-ink mb-6">
         {RUN_TYPE_LABELS[run.type as keyof typeof RUN_TYPE_LABELS]}
       </h1>
 
-      {/* Details grid */}
-      <div className="space-y-4 mb-8">
+      {/* Details */}
+      <div className="space-y-2 mb-8">
         {/* Meetpoint */}
         {hasMeetpoint && (
           <div className="bg-bg2 rounded-card px-4 py-3">
@@ -96,18 +99,7 @@ export default async function RunDetail({ params }: RunDetailProps) {
         {run.distances.length > 0 && (
           <div className="bg-bg2 rounded-card px-4 py-3">
             <p className="text-2xs text-ink3 uppercase tracking-wide font-medium mb-1">Distance</p>
-            <p className="text-sm font-semibold text-ink">{run.distances.join(', ')}</p>
-          </div>
-        )}
-
-        {/* Pace groups */}
-        {run.pace_groups && (
-          <div className="bg-bg2 rounded-card px-4 py-3">
-            <p className="text-2xs text-ink3 uppercase tracking-wide font-medium mb-1">Pace groups</p>
-            <p className="text-sm font-semibold text-ink">Yes</p>
-            {run.pace_group_detail && (
-              <p className="text-xs text-ink2 mt-0.5">{run.pace_group_detail}</p>
-            )}
+            <p className="text-sm font-semibold text-ink">{run.distances.join(' · ')}</p>
           </div>
         )}
 
@@ -116,6 +108,18 @@ export default async function RunDetail({ params }: RunDetailProps) {
           <div className="bg-bg2 rounded-card px-4 py-3">
             <p className="text-2xs text-ink3 uppercase tracking-wide font-medium mb-1">Duration</p>
             <p className="text-sm font-semibold text-ink">~{run.duration_minutes} min</p>
+          </div>
+        )}
+
+        {/* Pace groups */}
+        {run.pace_groups && (
+          <div className="bg-bg2 rounded-card px-4 py-3">
+            <p className="text-2xs text-ink3 uppercase tracking-wide font-medium mb-1">Pace groups</p>
+            {run.pace_group_detail ? (
+              <p className="text-sm text-ink">{run.pace_group_detail}</p>
+            ) : (
+              <p className="text-sm font-semibold text-ink">Yes</p>
+            )}
           </div>
         )}
 
@@ -147,15 +151,15 @@ export default async function RunDetail({ params }: RunDetailProps) {
       </div>
 
       {/* Club CTA */}
-      <div className="border-t border-line pt-5">
-        <p className="text-xs text-ink3 mb-3">Organised by</p>
+      <div className="border-t border-line pt-5 space-y-2">
+        <p className="text-2xs text-ink3 uppercase tracking-wide font-medium mb-3">Organised by</p>
         <Link
           href={`/${params.city}/clubs/${club.slug}`}
-          className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3"
+          className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 active:opacity-70 transition-opacity"
         >
           <span className="text-sm font-semibold text-ink flex items-center gap-1.5">
             {club.name}
-            {club.verified && <span className="text-blue">✓</span>}
+            {club.verified && <VerifiedBadge />}
           </span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -167,7 +171,7 @@ export default async function RunDetail({ params }: RunDetailProps) {
             href={`https://instagram.com/${club.instagram.replace('@', '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between mt-2 px-4 py-3 rounded-card border border-line"
+            className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 active:opacity-70 transition-opacity"
           >
             <span className="text-sm font-medium text-ink">View on Instagram</span>
             <span className="text-xs text-ink3">↗</span>

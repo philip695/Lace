@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
+import { VerifiedBadge } from '@/components/verified-badge'
 import { VIBE_TAG_LABELS } from '@lace/config/constants'
 
 type ClubsPageProps = {
@@ -50,9 +51,9 @@ export default async function ClubsPage({ params }: ClubsPageProps) {
           <Link
             key={club.id}
             href={`/${params.city}/clubs/${club.slug}`}
-            className="block bg-bg2 rounded-card-lg overflow-hidden"
+            className="block bg-bg2 rounded-card-lg overflow-hidden active:opacity-70 transition-opacity"
           >
-            {club.cover_image_url && (
+            {club.cover_image_url ? (
               <div className="relative h-32 w-full">
                 <Image
                   src={club.cover_image_url}
@@ -62,15 +63,14 @@ export default async function ClubsPage({ params }: ClubsPageProps) {
                   sizes="(max-width: 512px) 100vw, 512px"
                 />
               </div>
-            )}
+            ) : null}
+
             <div className="p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h2 className="font-semibold text-ink leading-tight flex items-center gap-1.5">
                     {club.name}
-                    {club.verified && (
-                      <span className="text-blue text-sm" title="Verified club">✓</span>
-                    )}
+                    {club.verified && <VerifiedBadge />}
                   </h2>
                   {club.description_short && (
                     <p className="text-xs text-ink2 mt-1 line-clamp-2">
