@@ -1,11 +1,79 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { RunTimeBadge } from '@/components/run-time-badge'
-import { VerifiedBadge } from '@/components/verified-badge'
-import { WEEKDAYS, WEEKDAY_LABELS, RUN_TYPE_LABELS, todayWeekday, isAM } from '@lace/config/constants'
+import { WeekViewClient, type DisplayRun } from './week-view-client'
+import { RUN_TYPE_LABELS, todayWeekday } from '@lace/config/constants'
 import type { RunWithClubAndLocation } from '@lace/db'
+
+// ─── Seed data (shown when Supabase has no runs yet) ──────────────────────────
+const SEED_RUNS: DisplayRun[] = [
+  {
+    id: 'seed-1',
+    citySlug: 'munich',
+    clubSlug: '5-am-run-club',
+    clubName: '5 AM Run Club',
+    time: '05:00',
+    weekday: 'wed',
+    meetpoint: 'Trudering',
+    typeLabel: 'Easy Run',
+    verified: false,
+  },
+  {
+    id: 'seed-2',
+    citySlug: 'munich',
+    clubSlug: 'flow-munich',
+    clubName: 'Flow',
+    time: '06:00',
+    weekday: 'wed',
+    meetpoint: 'Gerner Brücke',
+    typeLabel: 'Trail',
+    verified: false,
+  },
+  {
+    id: 'seed-3',
+    citySlug: 'munich',
+    clubSlug: 'early-bird-munich',
+    clubName: 'Early Bird',
+    time: '06:30',
+    weekday: 'wed',
+    meetpoint: 'Bavarian Statue',
+    typeLabel: 'Easy Run',
+    verified: false,
+  },
+  {
+    id: 'seed-4',
+    citySlug: 'munich',
+    clubSlug: 'adidas-runners-munich',
+    clubName: 'Adidas Runners',
+    time: '18:30',
+    weekday: 'wed',
+    meetpoint: 'BMW Welt',
+    typeLabel: 'Intervals',
+    verified: true,
+  },
+  {
+    id: 'seed-5',
+    citySlug: 'munich',
+    clubSlug: 'campus-runners-munich',
+    clubName: 'Campus Runners',
+    time: '18:30',
+    weekday: 'wed',
+    meetpoint: 'Universität',
+    typeLabel: 'Social Run',
+    verified: false,
+  },
+  {
+    id: 'seed-6',
+    citySlug: 'munich',
+    clubSlug: 'runcult',
+    clubName: 'RunCult',
+    time: '19:00',
+    weekday: 'wed',
+    meetpoint: 'Frauenplatz',
+    typeLabel: 'Social Run',
+    verified: false,
+  },
+]
 
 type WeekViewProps = {
   params: { city: string }
@@ -30,6 +98,7 @@ export default async function WeekView({ params }: WeekViewProps) {
 
   if (!city) notFound()
 
+  // Fetch active runs with club info
   const { data: clubs } = await supabase
     .from('club')
     .select('id')
@@ -38,97 +107,39 @@ export default async function WeekView({ params }: WeekViewProps) {
 
   const clubIds = (clubs ?? []).map((c) => c.id)
 
-  const { data: runs } = clubIds.length
+  const { data: rawRuns } = clubIds.length
     ? await supabase
         .from('run')
         .select(
-          `*, club:club_id(id, name, slug, shortname, verified, logo_url), location:location_id(id, name, slug)`
+          `*, club:club_id(id, name, slug, shortname, verified), location:location_id(id, name)`
         )
         .in('club_id', clubIds)
         .eq('status', 'active')
         .order('time')
     : { data: [] }
 
-  const typedRuns = (runs ?? []) as RunWithClubAndLocation[]
-  const today = todayWeekday()
+  // Map Supabase rows → DisplayRun
+  const supabaseRuns: DisplayRun[] = ((rawRuns ?? []) as RunWithClubAndLocation[]).map((r) => ({
+    id: r.id,
+    citySlug: params.city,
+    clubSlug: r.club.slug,
+    clubName: r.club.shortname ?? r.club.name,
+    time: r.time,
+    weekday: r.weekday,
+    meetpoint: r.meetpoint_name ?? r.location?.name ?? '—',
+    typeLabel: RUN_TYPE_LABELS[r.type] ?? r.type,
+    verified: r.club.verified,
+  }))
 
-  const runsByDay = WEEKDAYS.reduce<Record<string, RunWithClubAndLocation[]>>((acc, day) => {
-    acc[day] = typedRuns.filter((r) => r.weekday === day)
-    return acc
-  }, {})
-
-  const hasAnyRuns = typedRuns.length > 0
+  // Use real data if available, otherwise seed
+  const runs = supabaseRuns.length > 0 ? supabaseRuns : SEED_RUNS
 
   return (
-    <div className="px-4 py-6 space-y-8 max-w-lg mx-auto">
-      {!hasAnyRuns && (
-        <p className="text-ink2 text-sm text-center pt-10">
-          No runs yet in {city.name}. Check back soon.
-        </p>
-      )}
-
-      {WEEKDAYS.map((day) => {
-        const dayRuns = runsByDay[day]
-        if (!dayRuns.length) return null
-        const isToday = day === today
-
-        return (
-          <section key={day}>
-            {/* Day header */}
-            <div className="flex items-baseline gap-2.5 mb-3">
-              <h2
-                className={`font-display text-2xl leading-none ${
-                  isToday ? 'text-blue' : 'text-ink'
-                }`}
-              >
-                {WEEKDAY_LABELS[day]}
-              </h2>
-              {isToday && (
-                <span className="text-2xs font-semibold bg-blue-s text-blue px-2 py-0.5 rounded-full">
-                  Today
-                </span>
-              )}
-            </div>
-
-            {/* Run cards */}
-            <div className="space-y-2">
-              {dayRuns.map((run) => {
-                const am = isAM(run.time)
-                return (
-                  <Link
-                    key={run.id}
-                    href={`/${params.city}/clubs/${run.club.slug}/runs/${run.id}`}
-                    className="relative overflow-hidden flex items-center justify-between bg-bg2 rounded-card px-4 py-3.5 gap-3 active:opacity-70 transition-opacity"
-                  >
-                    {/* AM/PM accent bar */}
-                    <div
-                      className={`absolute left-0 inset-y-0 w-[3px] ${
-                        am ? 'bg-green' : 'bg-orange'
-                      }`}
-                    />
-                    <div className="min-w-0 pl-1">
-                      <div className="flex items-center gap-1.5">
-                        <p className="text-sm font-semibold text-ink truncate">
-                          {run.club.shortname ?? run.club.name}
-                        </p>
-                        {run.club.verified && <VerifiedBadge />}
-                      </div>
-                      <p className="text-xs text-ink2 truncate mt-0.5">
-                        {run.meetpoint_name
-                          ? `${run.meetpoint_name} · ${RUN_TYPE_LABELS[run.type]}`
-                          : RUN_TYPE_LABELS[run.type]}
-                      </p>
-                    </div>
-                    <div className="flex-shrink-0">
-                      <RunTimeBadge time={run.time} />
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          </section>
-        )
-      })}
-    </div>
+    <WeekViewClient
+      cityName={city.name}
+      citySlug={params.city}
+      runs={runs}
+      todayWeekday={todayWeekday()}
+    />
   )
 }
