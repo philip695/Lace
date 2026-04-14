@@ -10,9 +10,14 @@
   body {
     @apply bg-bg text-ink font-sans antialiased;
   }
+}
 
-  /* Safe area padding for devices with home indicator */
-  .safe-area-pb {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+@layer utilities {
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

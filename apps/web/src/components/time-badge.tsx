@@ -4,16 +4,12 @@ type TimeBadgeProps = {
   time: string // "HH:MM"
 }
 
-/**
- * AM = green, PM = orange — per lace. design system.
- * Shows "6:45 am" / "7:00 pm" in lowercase.
- */
 export function TimeBadge({ time }: TimeBadgeProps) {
   const am = isAM(time)
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums ${
-        am ? 'bg-green-s text-green' : 'bg-orange-s text-orange'
+      className={`inline-flex items-center rounded-full px-3.5 py-[5px] text-[14px] font-bold tracking-[-0.1px] whitespace-nowrap ${
+        am ? 'bg-am-bg text-am-fg' : 'bg-pm-bg text-pm-fg'
       }`}
     >
       {formatTime(time).toLowerCase()}

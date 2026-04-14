@@ -2,8 +2,25 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { WeekViewClient, type DisplayRun } from './week-view-client'
-import { RUN_TYPE_LABELS, todayWeekday } from '@lace/config/constants'
+import { RUN_TYPE_LABELS, todayWeekday, WEEKDAYS } from '@lace/config/constants'
+import type { WeekdaySlug } from '@lace/config/constants'
 import type { RunWithClubAndLocation } from '@lace/db'
+
+// ─── Week dates: Mon–Sun date numbers for the current week ────────────────────
+function getWeekDates(): Record<WeekdaySlug, number> {
+  const today = new Date()
+  const dayOfWeek = today.getDay() // 0=Sun, 1=Mon…6=Sat
+  const daysFromMonday = (dayOfWeek + 6) % 7 // 0=Mon…6=Sun
+  const monday = new Date(today)
+  monday.setDate(today.getDate() - daysFromMonday)
+
+  return WEEKDAYS.reduce<Record<WeekdaySlug, number>>((acc, day, i) => {
+    const d = new Date(monday)
+    d.setDate(monday.getDate() + i)
+    acc[day] = d.getDate()
+    return acc
+  }, {} as Record<WeekdaySlug, number>)
+}
 
 // ─── Seed data (shown when Supabase has no runs yet) ──────────────────────────
 const SEED_RUNS: DisplayRun[] = [
@@ -43,6 +60,17 @@ const SEED_RUNS: DisplayRun[] = [
   {
     id: 'seed-4',
     citySlug: 'munich',
+    clubSlug: 'freanks',
+    clubName: 'Freanks',
+    time: '07:00',
+    weekday: 'wed',
+    meetpoint: 'Café Chance',
+    typeLabel: 'Easy Run',
+    verified: false,
+  },
+  {
+    id: 'seed-5',
+    citySlug: 'munich',
     clubSlug: 'adidas-runners-munich',
     clubName: 'Adidas Runners',
     time: '18:30',
@@ -52,7 +80,7 @@ const SEED_RUNS: DisplayRun[] = [
     verified: true,
   },
   {
-    id: 'seed-5',
+    id: 'seed-6',
     citySlug: 'munich',
     clubSlug: 'campus-runners-munich',
     clubName: 'Campus Runners',
@@ -63,13 +91,35 @@ const SEED_RUNS: DisplayRun[] = [
     verified: false,
   },
   {
-    id: 'seed-6',
+    id: 'seed-7',
+    citySlug: 'munich',
+    clubSlug: 'munich-track-team',
+    clubName: 'Munich Track Team',
+    time: '18:30',
+    weekday: 'wed',
+    meetpoint: 'Café Berta',
+    typeLabel: 'Tempo',
+    verified: false,
+  },
+  {
+    id: 'seed-8',
     citySlug: 'munich',
     clubSlug: 'runcult',
     clubName: 'RunCult',
     time: '19:00',
     weekday: 'wed',
     meetpoint: 'Frauenplatz',
+    typeLabel: 'Social Run',
+    verified: false,
+  },
+  {
+    id: 'seed-9',
+    citySlug: 'munich',
+    clubSlug: 'tribe-munich',
+    clubName: 'Tribe',
+    time: '19:00',
+    weekday: 'wed',
+    meetpoint: 'Pelkovenstr.',
     typeLabel: 'Social Run',
     verified: false,
   },
@@ -140,6 +190,7 @@ export default async function WeekView({ params }: WeekViewProps) {
       citySlug={params.city}
       runs={runs}
       todayWeekday={todayWeekday()}
+      weekDates={getWeekDates()}
     />
   )
 }

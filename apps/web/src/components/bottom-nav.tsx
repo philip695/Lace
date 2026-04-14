@@ -16,9 +16,12 @@ export function BottomNav({ city }: BottomNavProps) {
       href: `/${city}`,
       exact: true,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <rect x="3" y="4" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M7 2v3M13 2v3M3 8h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
       ),
     },
@@ -27,14 +30,14 @@ export function BottomNav({ city }: BottomNavProps) {
       href: `/${city}/map`,
       exact: false,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path
-            d="M10 2C7.24 2 5 4.24 5 7c0 4.25 5 11 5 11s5-6.75 5-11c0-2.76-2.24-5-5-5z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-          <circle cx="10" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.5" />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <circle cx="12" cy="12" r="3" />
+          <line x1="12" y1="2" x2="12" y2="5" />
+          <line x1="12" y1="19" x2="12" y2="22" />
+          <line x1="2" y1="12" x2="5" y2="12" />
+          <line x1="19" y1="12" x2="22" y2="12" />
         </svg>
       ),
     },
@@ -43,21 +46,14 @@ export function BottomNav({ city }: BottomNavProps) {
       href: `/${city}/clubs`,
       exact: false,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="8" cy="7" r="2.5" stroke="currentColor" strokeWidth="1.5" />
-          <path
-            d="M3 17c0-3.31 2.24-6 5-6s5 2.69 5 6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
-          <circle cx="14" cy="7" r="2" stroke="currentColor" strokeWidth="1.5" />
-          <path
-            d="M14 11.5c1.66.5 3 2.07 3 4.5"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="8" y1="6" x2="21" y2="6" />
+          <line x1="8" y1="12" x2="21" y2="12" />
+          <line x1="8" y1="18" x2="21" y2="18" />
+          <line x1="3" y1="6" x2="3.01" y2="6" />
+          <line x1="3" y1="12" x2="3.01" y2="12" />
+          <line x1="3" y1="18" x2="3.01" y2="18" />
         </svg>
       ),
     },
@@ -66,14 +62,10 @@ export function BottomNav({ city }: BottomNavProps) {
       href: '/cities',
       exact: false,
       icon: (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <circle cx="10" cy="7" r="3" stroke="currentColor" strokeWidth="1.5" />
-          <path
-            d="M4 17c0-3.31 2.69-6 6-6s6 2.69 6 6"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-          />
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+          stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
         </svg>
       ),
     },
@@ -85,24 +77,24 @@ export function BottomNav({ city }: BottomNavProps) {
   }
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-bg border-t border-line safe-area-pb">
-      <div className="flex">
-        {items.map((item) => {
-          const active = isActive(item.href, item.exact)
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex flex-1 flex-col items-center gap-1 py-2 transition-colors ${
-                active ? 'text-blue' : 'text-ink3'
-              }`}
-            >
-              {item.icon}
-              <span className="text-2xs font-medium">{item.label}</span>
-            </Link>
-          )
-        })}
-      </div>
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-[74px] flex items-start justify-around bg-bg/95 backdrop-blur-xl border-t border-line pb-[18px]">
+      {items.map((item) => {
+        const active = isActive(item.href, item.exact)
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={`flex flex-1 flex-col items-center gap-[3px] pt-2.5 transition-colors ${
+              active ? 'text-accent' : 'text-ink3'
+            }`}
+          >
+            {item.icon}
+            <span className="text-[10px] font-medium tracking-[0.06em] uppercase">
+              {item.label}
+            </span>
+          </Link>
+        )
+      })}
     </nav>
   )
 }

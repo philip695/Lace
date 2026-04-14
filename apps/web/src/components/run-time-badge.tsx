@@ -12,13 +12,11 @@ export function RunTimeBadge({ time }: RunTimeBadgeProps) {
   const am = isAM(time)
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${
-        am
-          ? 'bg-green-s text-green'
-          : 'bg-orange-s text-orange'
+      className={`inline-flex items-center rounded-full px-3 py-[5px] text-[13px] font-bold tracking-[-0.1px] whitespace-nowrap ${
+        am ? 'bg-am-bg text-am-fg' : 'bg-pm-bg text-pm-fg'
       }`}
     >
-      {formatTime(time)}
+      {formatTime(time).toLowerCase()}
     </span>
   )
 }

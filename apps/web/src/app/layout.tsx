@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
-import { Instrument_Serif, DM_Sans } from 'next/font/google'
+import { DM_Serif_Display, DM_Sans } from 'next/font/google'
 import './globals.css'
 
-const instrumentSerif = Instrument_Serif({
+const dmSerifDisplay = DM_Serif_Display({
   subsets: ['latin'],
   weight: ['400'],
-  style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',
 })
@@ -36,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${instrumentSerif.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${dmSerifDisplay.variable} ${dmSans.variable}`}>
       <body>{children}</body>
     </html>
   )
