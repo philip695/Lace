@@ -95,17 +95,21 @@ export default async function WeekView({ params }: WeekViewProps) {
                   className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 gap-3 active:opacity-70 transition-opacity"
                 >
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
-                      {run.club.shortname ?? run.club.name}
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-ink truncate">
+                        {run.club.shortname ?? run.club.name}
+                      </p>
                       {run.club.verified && <VerifiedBadge />}
-                    </p>
+                    </div>
                     <p className="text-xs text-ink2 truncate mt-0.5">
                       {run.meetpoint_name
                         ? `${run.meetpoint_name} · ${RUN_TYPE_LABELS[run.type]}`
                         : RUN_TYPE_LABELS[run.type]}
                     </p>
                   </div>
-                  <RunTimeBadge time={run.time} />
+                  <div className="flex-shrink-0">
+                    <RunTimeBadge time={run.time} />
+                  </div>
                 </Link>
               ))}
             </div>
