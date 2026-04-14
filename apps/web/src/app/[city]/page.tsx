@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { RunTimeBadge } from '@/components/run-time-badge'
 import { VerifiedBadge } from '@/components/verified-badge'
-import { WEEKDAYS, WEEKDAY_LABELS, RUN_TYPE_LABELS, todayWeekday } from '@lace/config/constants'
+import { WEEKDAYS, WEEKDAY_LABELS, RUN_TYPE_LABELS, todayWeekday, isAM } from '@lace/config/constants'
 import type { RunWithClubAndLocation } from '@lace/db'
 
 type WeekViewProps = {
@@ -60,7 +60,7 @@ export default async function WeekView({ params }: WeekViewProps) {
   const hasAnyRuns = typedRuns.length > 0
 
   return (
-    <div className="px-4 py-5 space-y-7 max-w-lg mx-auto">
+    <div className="px-4 py-6 space-y-8 max-w-lg mx-auto">
       {!hasAnyRuns && (
         <p className="text-ink2 text-sm text-center pt-10">
           No runs yet in {city.name}. Check back soon.
@@ -75,8 +75,12 @@ export default async function WeekView({ params }: WeekViewProps) {
         return (
           <section key={day}>
             {/* Day header */}
-            <div className="flex items-center gap-2 mb-3">
-              <h2 className={`text-sm font-semibold ${isToday ? 'text-blue' : 'text-ink2'}`}>
+            <div className="flex items-baseline gap-2.5 mb-3">
+              <h2
+                className={`font-display text-2xl leading-none ${
+                  isToday ? 'text-blue' : 'text-ink'
+                }`}
+              >
                 {WEEKDAY_LABELS[day]}
               </h2>
               {isToday && (
@@ -88,30 +92,39 @@ export default async function WeekView({ params }: WeekViewProps) {
 
             {/* Run cards */}
             <div className="space-y-2">
-              {dayRuns.map((run) => (
-                <Link
-                  key={run.id}
-                  href={`/${params.city}/clubs/${run.club.slug}/runs/${run.id}`}
-                  className="flex items-center justify-between bg-bg2 rounded-card px-4 py-3 gap-3 active:opacity-70 transition-opacity"
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-ink truncate">
-                        {run.club.shortname ?? run.club.name}
+              {dayRuns.map((run) => {
+                const am = isAM(run.time)
+                return (
+                  <Link
+                    key={run.id}
+                    href={`/${params.city}/clubs/${run.club.slug}/runs/${run.id}`}
+                    className="relative overflow-hidden flex items-center justify-between bg-bg2 rounded-card px-4 py-3.5 gap-3 active:opacity-70 transition-opacity"
+                  >
+                    {/* AM/PM accent bar */}
+                    <div
+                      className={`absolute left-0 inset-y-0 w-[3px] ${
+                        am ? 'bg-green' : 'bg-orange'
+                      }`}
+                    />
+                    <div className="min-w-0 pl-1">
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-ink truncate">
+                          {run.club.shortname ?? run.club.name}
+                        </p>
+                        {run.club.verified && <VerifiedBadge />}
+                      </div>
+                      <p className="text-xs text-ink2 truncate mt-0.5">
+                        {run.meetpoint_name
+                          ? `${run.meetpoint_name} · ${RUN_TYPE_LABELS[run.type]}`
+                          : RUN_TYPE_LABELS[run.type]}
                       </p>
-                      {run.club.verified && <VerifiedBadge />}
                     </div>
-                    <p className="text-xs text-ink2 truncate mt-0.5">
-                      {run.meetpoint_name
-                        ? `${run.meetpoint_name} · ${RUN_TYPE_LABELS[run.type]}`
-                        : RUN_TYPE_LABELS[run.type]}
-                    </p>
-                  </div>
-                  <div className="flex-shrink-0">
-                    <RunTimeBadge time={run.time} />
-                  </div>
-                </Link>
-              ))}
+                    <div className="flex-shrink-0">
+                      <RunTimeBadge time={run.time} />
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </section>
         )
