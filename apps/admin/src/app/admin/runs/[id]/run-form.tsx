@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createRun, updateRun, deleteRun } from '../actions'
 import type { Run, Club } from '@lace/db'
 
 type RunFormProps = {
@@ -49,15 +49,11 @@ export function RunForm({ run, clubs, isNew }: RunFormProps) {
       notes: (data.get('notes') as string) || null,
     }
 
-    const supabase = createClient()
+    const result = isNew
+      ? await createRun(payload)
+      : await updateRun(run!.id, payload)
 
-    if (isNew) {
-      const { error } = await supabase.from('run').insert(payload)
-      if (error) { setError(error.message); setSaving(false); return }
-    } else {
-      const { error } = await supabase.from('run').update(payload).eq('id', run!.id)
-      if (error) { setError(error.message); setSaving(false); return }
-    }
+    if (result.error) { setError(result.error); setSaving(false); return }
 
     router.push('/admin/runs')
     router.refresh()
@@ -65,9 +61,8 @@ export function RunForm({ run, clubs, isNew }: RunFormProps) {
 
   async function handleDelete() {
     if (!run || !confirm('Delete this run?')) return
-    const supabase = createClient()
-    const { error } = await supabase.from('run').delete().eq('id', run.id)
-    if (error) { setError(error.message); return }
+    const result = await deleteRun(run.id)
+    if (result.error) { setError(result.error); return }
     router.push('/admin/runs')
     router.refresh()
   }

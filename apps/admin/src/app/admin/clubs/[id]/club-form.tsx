@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { VIBE_TAGS, VIBE_TAG_LABELS } from '@lace/config/constants'
+import { createClub, updateClub, deleteClub } from '../actions'
 import type { Club, City } from '@lace/db'
 
 type ClubFormProps = {
@@ -80,15 +80,11 @@ export function ClubForm({ club, cities, isNew }: ClubFormProps) {
       verified: data.get('verified') === 'on',
     }
 
-    const supabase = createClient()
+    const result = isNew
+      ? await createClub(payload)
+      : await updateClub(club!.id, payload)
 
-    if (isNew) {
-      const { error } = await supabase.from('club').insert(payload)
-      if (error) { setError(error.message); setSaving(false); return }
-    } else {
-      const { error } = await supabase.from('club').update(payload).eq('id', club!.id)
-      if (error) { setError(error.message); setSaving(false); return }
-    }
+    if (result.error) { setError(result.error); setSaving(false); return }
 
     router.push('/admin/clubs')
     router.refresh()
@@ -96,9 +92,8 @@ export function ClubForm({ club, cities, isNew }: ClubFormProps) {
 
   async function handleDelete() {
     if (!club || !confirm(`Delete "${club.name}"? This cannot be undone.`)) return
-    const supabase = createClient()
-    const { error } = await supabase.from('club').delete().eq('id', club.id)
-    if (error) { setError(error.message); return }
+    const result = await deleteClub(club.id)
+    if (result.error) { setError(result.error); return }
     router.push('/admin/clubs')
     router.refresh()
   }

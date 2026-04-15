@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { createLocation, updateLocation } from '../actions'
 import type { Location, City } from '@lace/db'
 
 type LocationFormProps = {
@@ -46,15 +46,11 @@ export function LocationForm({ location, cities, isNew }: LocationFormProps) {
       verified: data.get('verified') === 'on',
     }
 
-    const supabase = createClient()
+    const result = isNew
+      ? await createLocation(payload)
+      : await updateLocation(location!.id, payload)
 
-    if (isNew) {
-      const { error } = await supabase.from('location').insert(payload)
-      if (error) { setError(error.message); setSaving(false); return }
-    } else {
-      const { error } = await supabase.from('location').update(payload).eq('id', location!.id)
-      if (error) { setError(error.message); setSaving(false); return }
-    }
+    if (result.error) { setError(result.error); setSaving(false); return }
 
     router.push('/admin/locations')
     router.refresh()
